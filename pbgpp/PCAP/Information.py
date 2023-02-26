@@ -108,16 +108,22 @@ class PCAPLayer2Information:
 
 
 class PCAPLayer3Information:
-    def __init__(self, source, destination):
+    def __init__(self, source, destination, version):
         # Store source and destination IP address
         self.source = source
         self.destination = destination
+        self.version = version
 
     def get_source_string(self):
-        return str(self.source[0]) + "." + str(self.source[1]) + "." + str(self.source[2]) + "." + str(self.source[3])
-
+        if self.version==4:
+            return str(self.source[0]) + "." + str(self.source[1]) + "." + str(self.source[2]) + "." + str(self.source[3])
+        else:
+            return self.source
     def get_destination_string(self):
-        return str(self.destination[0]) + "." + str(self.destination[1]) + "." + str(self.destination[2]) + "." + str(self.destination[3])
+        if self.version==4:
+            return str(self.destination[0]) + "." + str(self.destination[1]) + "." + str(self.destination[2]) + "." + str(self.destination[3])
+        else:
+            return self.destination
 
     def __str__(self):
         return "<PCAPLayer3Information source={0} destination={1}>".format(self.get_source_string(), self.get_destination_string())

@@ -53,9 +53,20 @@ class PathAttributeNextHop(BGPPathAttribute):
             return None
 
     def json(self):
-        return {
-            "type": self.type,
-            "type_string": BGPTranslation.path_attribute(self.type),
-            "error": self.error,
-            "next_hop": str(BGPRoute.decimal_ip_to_string(self.next_hop))
-        }
+        try:
+            if self.next_hop != None:
+                return {
+                    "type": self.type,
+                    "type_string": BGPTranslation.path_attribute(self.type),
+                    "error": self.error,
+                    "next_hop": str(BGPRoute.decimal_ip_to_string(self.next_hop))
+                }
+            else:
+                return {
+                    "type": self.type,
+                    "type_string": BGPTranslation.path_attribute(self.type),
+                    "error": self.error,
+                }
+        except Exception as e:
+            print(self.next_hop)
+            input('...')

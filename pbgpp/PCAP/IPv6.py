@@ -21,7 +21,7 @@ import struct
 from pbgpp.PCAP.Information import PCAPLayer3Information
 
 
-class PCAPIP:
+class PCAPIPV6:
     PROTO_TCP = 0x0006
     BITMASK_IP_HEADER_LENGTH = 0xf
 
@@ -31,7 +31,7 @@ class PCAPIP:
         self.protocol = None
         self.addresses = None
 
-        self.header_length = None
+        self.header_length = 40
         self.version = None
         self.total_length = None
 
@@ -39,17 +39,17 @@ class PCAPIP:
         self.__parse()
 
     def __parse(self):
-        version_length = struct.unpack("!B", self.payload[:1])[0]
-        # IP header length and version is packed into 1 byte (8 bit)
-        self.header_length = (version_length & self.BITMASK_IP_HEADER_LENGTH) * 4
-        self.version = (version_length >> 4)
+        # We dont get version length in IPv6
 
-        self.total_length = struct.unpack("!H", self.payload[2:4])[0]
-        #print(self.total_length)
-        self.protocol = struct.unpack("!B", self.payload[9:10])[0]
-
-        ip_set = struct.unpack("!BBBBBBBB", self.payload[12:20])
-        self.addresses = PCAPLayer3Information(ip_set[0:4], ip_set[4:8], 4)
+        self.total_length = struct.unpack("!H", self.payload[4:6])[0]
+        self.protocol = struct.unpack("!B", self.payload[6:7])[0]
+        
+        tmpIPv6src = self.payload[8:24].hex() 
+        IPv6src = ":".join(tmpIPv6src[i:i+4].lstrip('0') for i in range(0, len(tmpIPv6src), 4)) 
+        
+        tmpIPv6dst = self.payload[24:40].hex()
+        IPv6dst = ":".join(tmpIPv6dst[i:i+4].lstrip('0') for i in range(0, len(tmpIPv6dst), 4))
+        self.addresses = PCAPLayer3Information(IPv6src, IPv6dst, 6)
 
     def get_protocol(self):
         return self.protocol
@@ -58,4 +58,4 @@ class PCAPIP:
         return self.addresses
 
     def get_ip_payload(self):
-        return self.payload[self.header_length:self.total_length]
+        return self.payload[self.header_length:]

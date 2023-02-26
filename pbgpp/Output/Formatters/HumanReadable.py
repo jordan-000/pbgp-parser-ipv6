@@ -47,7 +47,6 @@ class HumanReadableFormatter(BGPFormatter):
         # |- NLRI
         # |--- 203.190.42.0/24
         ##
-
         # Initialize basic return string and PCAP information
         string = "[BGPMessage " + BGPTranslation.message_type(message.type) + "] - " + str(message.length) + " Bytes\n"
         string += self.prefix(0) + "MAC: " + message.pcap_information.get_mac().get_source_string(separated=True) + " -> " + message.pcap_information.get_mac().get_destination_string(separated=True) + "\n"
@@ -104,10 +103,7 @@ class HumanReadableFormatter(BGPFormatter):
 
             # --- NLRI
             if len(message.nlri) > 0:
-                string += self.prefix(0) + "Prefix (NLRI):"
-                if message.add_path:
-                    string += " (AddPath)\n" + self.prefix(0) + "Path Identifier: " + str(message.path_id)
-                string += "\n"
+                string += self.prefix(0) + "Prefix (NLRI):" + "\n"
 
                 # Process NLRI
                 for route in message.nlri:
@@ -132,10 +128,7 @@ class HumanReadableFormatter(BGPFormatter):
 
             # --- Withdrawn Routes
             if message.withdrawn_routes_length > 0:
-                string += self.prefix(0) + "Withdrawn Routes:"
-                if message.add_path:
-                    string += " (AddPath)\n" + self.prefix(0) + "Path Identifier: " + str(message.path_id)
-                string += "\n"
+                string += self.prefix(0) + "Withdrawn Routes:" + "\n"
 
                 # Process withdrawn routes
                 for route in message.withdrawn_routes:

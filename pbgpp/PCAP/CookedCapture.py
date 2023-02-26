@@ -61,6 +61,7 @@ class PCAPCookedCapture:
 
             # Packet type
             self.packet_type = struct.unpack("!H", self.payload[0:2])[0]
+            print(self.packet_type)
             if self.packet_type not in self.SLL_ALLOWED_VALUES:
                 raise Exception("SLL packet type does not match allowed SLL packet type values.")
 

@@ -29,7 +29,6 @@ class JSONFormatter(BGPFormatter):
         pass
 
     def apply(self, message):
-
         # Basic data for every message type
         data = {
             "timestamp": str(message.pcap_information.get_timestamp()[0]) + "." + str(message.pcap_information.get_timestamp()[1]),
@@ -79,7 +78,6 @@ class JSONFormatter(BGPFormatter):
 
                 "path_attributes": None,
                 "withdrawn_routes": None,
-                "pathId": None,
                 "nlri": None
             }
 
@@ -104,10 +102,8 @@ class JSONFormatter(BGPFormatter):
 
             # Assign to message data
             message_data["path_attributes"] = path_attributes
-            if message.add_path:
-                message_data["pathId"] = message.path_id
             message_data["withdrawn_routes"] = withdrawn_routes
-            message_data["nlri"] = nlri 
+            message_data["nlri"] = nlri
 
             # Assign message data to return data
             data["message_data"] = message_data

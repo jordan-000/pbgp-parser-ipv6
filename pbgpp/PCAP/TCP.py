@@ -59,7 +59,6 @@ class PCAPTCP:
 
     def __parse(self):
         tcp_data = struct.unpack("!HHLL", self.payload[0:12])
-
         source_port = tcp_data[0]
         destination_port = tcp_data[1]
         self.seq = tcp_data[2]

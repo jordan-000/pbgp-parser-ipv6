@@ -26,6 +26,7 @@ from pbgpp.PCAP.Information import PCAPLayer2Information
 
 class PCAPEthernet:
     ETH_TYPE_IPV4 = 0x0800
+    ETH_TYPE_IPV6 = 0x86dd
 
     def __init__(self, payload):
         self.payload = payload
@@ -48,7 +49,7 @@ class PCAPEthernet:
             self.mac = PCAPLayer2Information(self.payload[6:12], self.payload[:6])
 
         except Exception as e:
-            logging.error("Parsing ethernet frame caused exception (message: " + e.message + ")") #str(e)
+            logging.error("Parsing ethernet frame caused exception (message: " + str(e) + ")")
             self.parsing_error = True
 
     def get_type(self):

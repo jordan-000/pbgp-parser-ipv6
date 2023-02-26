@@ -1,5 +1,8 @@
 ![pbgpp Logo](https://github.com/de-cix/pbgp-parser/blob/master/logo_pbgp.png)
 
+# PCAP BGP Parser with added IPv6 support
+This is a modified version of pbgpp that can handle packets utilizing IPv6
+
 # PCAP BGP Parser (pbgpp)
 [![PyPI version](https://badge.fury.io/py/pbgpp.svg)](https://badge.fury.io/py/pbgpp)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/de-cix/pbgp-parser/blob/master/LICENSE.txt)

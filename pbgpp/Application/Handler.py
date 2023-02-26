@@ -25,10 +25,6 @@ from itertools import chain
 
 import pcapy
 
-from pbgpp.Application.Flags.Flag import Flag
-from pbgpp.Application.Flags.AddPathFlag import AddPathFlag
-from pbgpp.Application.Flags.Exceptions import FlagError
-
 from pbgpp.BGP.Exceptions import BGPPacketHasNoMessagesError, BGPError
 from pbgpp.BGP.Packet import BGPPacket
 from pbgpp.Output.Filters.ASNFilter import ASNFilter
@@ -58,6 +54,7 @@ from pbgpp.Output.Pipes.StdOutPipe import StdOutPipe
 from pbgpp.PCAP.CookedCapture import PCAPCookedCapture
 from pbgpp.PCAP.Ethernet import PCAPEthernet
 from pbgpp.PCAP.IP import PCAPIP
+from pbgpp.PCAP.IPv6 import PCAPIPV6
 from pbgpp.PCAP.Information import PCAPInformation
 from pbgpp.PCAP.TCP import PCAPTCP
 
@@ -82,10 +79,6 @@ class PBGPPHandler:
 
         self.__packet_counter = 0
 
-        self.flags = {
-            "addpath": AddPathFlag()
-        }
-
     def handle(self):
         logger = logging.getLogger('pbgpp.PBGPPHandler.handle')
 
@@ -100,9 +93,6 @@ class PBGPPHandler:
 
         if self.args.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
-
-        logger.debug("Parsing flags ...")
-        self.__parse_flags()
 
         logger.debug("Parsing filters ...")
         self.__parse_filters()
@@ -134,19 +124,6 @@ class PBGPPHandler:
 
         self.__parser.print_help()
         sys.exit(0)
-
-    def __parse_flags(self):
-        logger = logging.getLogger("pbgpp.PBGPPHandler.__parse_flags")
-
-        if self.args.add_path_metric:
-            flag_value = self.args.add_path_metric[0]
-            try:
-                self.flags["addpath"].set_value(flag_value)
-            except FlagError as e:
-                logger.error(e.message + " - fallback to default")
-                flag_value = self.flags["addpath"].default_value
-
-            logger.debug("AddPath-Flag set with value: " + str(flag_value))
 
     def __parse_filters(self):
         logger = logging.getLogger("pbgpp.PBGPPHandler.__parse_filters")
@@ -314,11 +291,11 @@ class PBGPPHandler:
     def __packet_handler(self, header, payload):
         logger = logging.getLogger("pbgpp.PBGPPHandler.__packet_handler")
         logger.debug("Parsing PCAP packet " + str(self.__packet_counter))
-
+        #print("Parsing PCAP packet " + str(self.__packet_counter))
         eth = PCAPEthernet(payload)
-
+        
         # Check for raw ethernet packet
-        if not eth.get_type() == PCAPEthernet.ETH_TYPE_IPV4:
+        if not eth.get_type() == PCAPEthernet.ETH_TYPE_IPV4 and not eth.get_type() == PCAPEthernet.ETH_TYPE_IPV6:
 
             # Check for SLL-packet
             eth = PCAPCookedCapture(payload)
@@ -327,14 +304,18 @@ class PBGPPHandler:
                 logger.debug("Discarding PCAP packet " + str(self.__packet_counter) + " due to non-IPv4 ethernet type.")
                 return False
 
-        ip = PCAPIP(eth.get_eth_payload())
-
+        if eth.get_type() == PCAPEthernet.ETH_TYPE_IPV4:
+            ip = PCAPIP(eth.get_eth_payload())
+        elif eth.get_type() == PCAPEthernet.ETH_TYPE_IPV6:
+            ip = PCAPIPV6(eth.get_eth_payload())
+        
+        #print(ip.get_protocol())
         if not ip.get_protocol() == PCAPIP.PROTO_TCP:
             logger.debug("Discarding PCAP packet " + str(self.__packet_counter) + " due to non-TCP IP type.")
             return False
 
         tcp = PCAPTCP(ip.get_ip_payload())
-
+        
         pcap_information = PCAPInformation(header.getts(), eth.mac, ip.addresses, tcp.ports)
 
         for filter in self.prefilters:
@@ -343,10 +324,10 @@ class PBGPPHandler:
                 return
 
         try:
-            bgp = BGPPacket(tcp.get_tcp_payload(), pcap_information, self.flags)
+
+            bgp = BGPPacket(tcp.get_tcp_payload(), pcap_information)
 
             messages = bgp.message_list
-
             for m in messages:
                 handler = OutputHandler(message=m, filter=self.filters, formatter=self.formatter, pipe=self.pipe)
                 handler.handle()
